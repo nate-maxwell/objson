@@ -111,7 +111,7 @@ def serializable(tag: str) -> Callable[[type], type]:
                 f'{cls.__name__!r} must implement the Serializable protocol '
                 f'(__encode__ and __decode__).'
             )
-        serializable_cls: Serializable = cls
+        serializable_cls: Serializable = cls  # type: ignore[assignment]
         _registry.register(tag, cls, lambda instance: instance.__encode__(), serializable_cls.__decode__)
         return cls
     return decorator

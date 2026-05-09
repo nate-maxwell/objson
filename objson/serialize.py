@@ -144,8 +144,8 @@ def _decode_value(value: object) -> object:
 def _decode_object(value: dict) -> object:
     decoded = {k: _decode_value(v) for k, v in value.items()}
 
-    tag = str(decoded.get(_TYPE_KEY))
-    if tag is None:
+    tag = decoded.get(_TYPE_KEY)
+    if not isinstance(tag, str):
         return decoded
 
     registry = get_registry()

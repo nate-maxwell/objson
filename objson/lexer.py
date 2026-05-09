@@ -7,8 +7,6 @@
 """
 
 
-from typing import Optional
-
 from objson.token import Token
 from objson.token import TokenType
 from objson.token import look_up_identifier
@@ -47,7 +45,7 @@ class Lexer(object):
 
     # -----Read Helpers--------------------------------------------------------
 
-    def _read_string(self) -> Optional[tuple[str, Optional[str]]]:
+    def _read_string(self) -> tuple[str, str | None]:
         """
         Reads a double-quoted JSON string, handling escape sequences.
 
@@ -86,6 +84,8 @@ class Lexer(object):
                 result.append(escapes[esc])
             else:
                 result.append(ch)
+
+        raise RuntimeError('Unreachable.')
 
     def _read_number(self) -> tuple[str, TokenType]:
         """

@@ -210,20 +210,3 @@ class Parser(object):
             return float(token.literal)
         except ValueError:
             raise ValueError(f'[Line {token.line_no}] Could not parse {token.literal!r} as float.')
-
-
-# -----Public API--------------------------------------------------------------
-
-def loads(text: str) -> object:
-    """
-    Parses a JSON string into a Python value.
-
-    Args:
-        text (str): The JSON input string.
-
-    Returns:
-        object: The parsed value.
-    """
-    lexer = Lexer(text)
-    parser = Parser(lexer)
-    return parser.parse()
