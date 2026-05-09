@@ -81,7 +81,9 @@ class Parser(object):
             self._next_token()
             if not self._current_token_is(TokenType.EOF):
                 line_no = self._current_token.line_no
-                raise ValueError(f"[Line {line_no}] Unexpected trailing content after value.")
+                raise ValueError(
+                    f"[Line {line_no}] Unexpected trailing content after value."
+                )
         return value
 
     # -----Value Dispatch------------------------------------------------------
@@ -95,6 +97,8 @@ class Parser(object):
         """
         if self._current_token_is(TokenType.LBRACE):
             return self._parse_object()
+        elif self._current_token_is(TokenType.SET_LBRACE):
+            return self._parse_set()
         elif self._current_token_is(TokenType.LBRACKET):
             return self._parse_array()
         elif self._current_token_is(TokenType.STRING):
@@ -173,6 +177,33 @@ class Parser(object):
 
             self._next_token()  # advance past COMMA
 
+    # -----Set Parsing---------------------------------------------------------
+
+    def _parse_set(self) -> set:
+        """
+        Parses a set literal (#{...}) into a Python set.
+
+        Returns:
+            set: The parsed set.
+        """
+        result: set = set()
+
+        if self._peek_token_is(TokenType.RBRACE):
+            self._next_token()
+            return result
+
+        while True:
+            self._next_token()
+            result.add(self._parse_value())
+
+            if self._peek_token_is(TokenType.RBRACE):
+                self._next_token()
+                return result
+            elif not self._peek_token_is(TokenType.COMMA):
+                self._peek_error(TokenType.COMMA)
+
+            self._next_token()  # advance past COMMA
+
     # -----Literal Parsing-----------------------------------------------------
 
     def _parse_string_literal(self) -> str:
@@ -210,4 +241,6 @@ class Parser(object):
         try:
             return float(token.literal)
         except ValueError:
-            raise ValueError(f"[Line {token.line_no}] Could not parse {token.literal!r} as float.")
+            raise ValueError(
+                f"[Line {token.line_no}] Could not parse {token.literal!r} as float."
+            )

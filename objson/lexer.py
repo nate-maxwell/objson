@@ -13,7 +13,7 @@ from objson.token import look_up_identifier
 
 class Lexer(object):
     def __init__(self, input_text: str) -> None:
-        self._text = input_text
+        self._text: str = input_text
         self._position: int = 0
         self._read_position: int = 0
         self._current_char: str = ""
@@ -75,20 +75,30 @@ class Lexer(object):
                 self._read_char()
                 esc = self._current_char
                 if esc == "u":
-                    hex_chars = self._text[self._read_position:self._read_position + 4]
+                    hex_chars = self._text[
+                        self._read_position : self._read_position + 4
+                    ]
                     if len(hex_chars) < 4 or not all(
                         c in "0123456789abcdefABCDEF" for c in hex_chars
                     ):
-                        return "", f"[Line {self._current_line_num}] Invalid unicode escape."
+                        return (
+                            "",
+                            f"[Line {self._current_line_num}] Invalid unicode escape.",
+                        )
                     result.append(chr(int(hex_chars, 16)))
                     self._read_position += 4
                     self._position = self._read_position - 1
                     self._current_char = (
-                        self._text[self._position] if self._position < len(self._text) else "\0"
+                        self._text[self._position]
+                        if self._position < len(self._text)
+                        else "\0"
                     )
                     continue
                 if esc not in escapes:
-                    return "", f"[Line {self._current_line_num}] Invalid escape character \\{esc}."
+                    return (
+                        "",
+                        f"[Line {self._current_line_num}] Invalid escape character \\{esc}.",
+                    )
                 result.append(escapes[esc])
             else:
                 result.append(ch)
@@ -169,6 +179,12 @@ class Lexer(object):
             tok = self._make_one_char_token(TokenType.COLON)
         elif ch == ",":
             tok = self._make_one_char_token(TokenType.COMMA)
+        elif ch == "#":
+            if self._peek_char() == "{":
+                self._read_char()
+                tok = Token(TokenType.SET_LBRACE, "#{", self._current_line_num)
+            else:
+                tok = Token(TokenType.ILLEGAL, ch, self._current_line_num)
 
         elif ch == '"':
             literal, error = self._read_string()

@@ -5,7 +5,7 @@ round-trips via a decorator-based registry.
 
 ## Overview
 
-objson is built from scratch around a handwritten lexer and recursive descent
+objson is built from scratch around a hand-written lexer and recursive descent
 parser. On top of that it adds a registry system that lets you teach the
 serializer how to handle your own classes, so they survive a full
 `dumps` → `loads` round-trip without any manual conversion.
@@ -103,6 +103,53 @@ dumps({"items": [1, 2, 3]}, indent=2)
 # }
 ```
 
+## Sets
+
+objson extends the JSON syntax with a set literal using the `#{...}` sigil,
+which mirrors Python's own set syntax without conflicting with object notation.
+
+```python
+from objson import dumps, loads
+
+# Serializing a set
+dumps({1, 2, 3})
+# '#{1, 2, 3}'
+
+# Deserializing a set
+loads("#{1, 2, 3}")
+# {1, 2, 3}
+
+# Round-trip
+loads(dumps({"a", "b", "c"})) == {"a", "b", "c"}
+# True
+```
+
+Sets can contain any hashable JSON value — integers, floats, strings, booleans,
+and `None`. Dicts, lists, and other sets are not valid set members, consistent
+with Python's own rules.
+
+Sets compose naturally with other types:
+
+```python
+dumps({"tags": {"render", "hero", "animated"}})
+# '{"tags": #{"render", "hero", "animated"}}'
+
+dumps([{1, 2}, {3, 4}])
+# '[#{1, 2}, #{3, 4}]'
+```
+
+Indented output is also supported:
+
+```python
+dumps({"tags": {"a", "b"}}, indent=2)
+# {
+#   "tags": #{
+#     "a",
+#     "b"
+#   }
+# }
+```
+
 ## File I/O
 
 ```python
@@ -158,17 +205,18 @@ if entry is not None:
     v = entry.decode({"x": 1.0, "y": 2.0, "z": 3.0})  # -> Vec3
 ```
 
-## Supported JSON Types
+## Supported Types
 
-| JSON       | Python           |
-|------------|------------------|
-| `null`     | `None`           |
-| `true`     | `True`           |
-| `false`    | `False`          |
-| `number`   | `int` or `float` |
-| `string`   | `str`            |
-| `array`    | `list`           |
-| `object`   | `dict`           |
+| Syntax       | Python           |
+|--------------|------------------|
+| `null`       | `None`           |
+| `true`       | `True`           |
+| `false`      | `False`          |
+| `number`     | `int` or `float` |
+| `string`     | `str`            |
+| `array`      | `list`           |
+| `object`     | `dict`           |
+| `#{...}`     | `set`            |
 
 String escape sequences supported: `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`,
 `\t`, `\uXXXX`.
@@ -180,8 +228,22 @@ indicating where in the input the problem was found.
 
 | Situation                                         | Exception    |
 |---------------------------------------------------|--------------|
-| Malformed JSON                                    | `ValueError` |
+| Malformed JSON                                    | `ValueError` | 
 | Trailing content after value                      | `ValueError` |
 | Unknown `__type__` tag on load                    | `ValueError` |
 | Unregistered type passed to `dumps`               | `TypeError`  |
 | `@serializable` on class missing protocol methods | `TypeError`  |
+
+## Running Tests
+
+```
+pytest
+```
+
+Tests are organized by module:
+
+- `test_lexer.py` — token scanning, escape sequences, line number tracking
+- `test_parser.py` — value parsing, nested structures, error cases
+- `test_registry.py` — registration, protocol checking, decorator behaviour
+- `test_serialize.py` — round-trips, indentation, file I/O, custom types
+- `test_sets.py` — set support across the lexer, parser, and serializer

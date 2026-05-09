@@ -6,7 +6,6 @@
     The list of tokens recognized by the JSON lexer.
 """
 
-
 from enum import Enum
 from enum import unique
 
@@ -14,26 +13,27 @@ from enum import unique
 @unique
 class TokenType(Enum):
     # ----------------------Misc-----------------------
-    ILLEGAL = 'ILLEGAL'
-    EOF = 'EOF'
+    ILLEGAL = "ILLEGAL"
+    EOF = "EOF"
 
     # -------------Identifiers + literals--------------
-    STRING = 'STRING'
-    INT = 'INT'
-    FLOAT = 'FLOAT'
+    STRING = "STRING"
+    INT = "INT"
+    FLOAT = "FLOAT"
 
     # --------------------Keywords---------------------
-    TRUE = 'TRUE'
-    FALSE = 'FALSE'
-    NULL = 'NULL'
+    TRUE = "TRUE"
+    FALSE = "FALSE"
+    NULL = "NULL"
 
     # --------------------Delimiters-------------------
-    LBRACE = '{'
-    RBRACE = '}'
-    LBRACKET = '['
-    RBRACKET = ']'
-    COLON = ':'
-    COMMA = ','
+    LBRACE = "{"
+    RBRACE = "}"
+    LBRACKET = "["
+    RBRACKET = "]"
+    COLON = ":"
+    COMMA = ","
+    SET_LBRACE = "#{"
 
 
 class Token(object):
@@ -44,9 +44,9 @@ class Token(object):
 
 
 keywords: dict[str, TokenType] = {
-    'true': TokenType.TRUE,
-    'false': TokenType.FALSE,
-    'null': TokenType.NULL,
+    "true": TokenType.TRUE,
+    "false": TokenType.FALSE,
+    "null": TokenType.NULL,
 }
 """The literal keyword strings and their corresponding token types."""
 
