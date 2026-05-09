@@ -133,12 +133,10 @@ class Lexer(object):
             self._read_char()
         return self._text[position:self._position]
 
-    # -----Token Factory-------------------------------------------------------
+    # -----Token Helpers-------------------------------------------------------
 
     def _make_one_char_token(self, token_type: TokenType) -> Token:
         return Token(token_type, self._current_char, self._current_line_num)
-
-    # -----Next Token----------------------------------------------------------
 
     def next_token(self) -> Token:
         """

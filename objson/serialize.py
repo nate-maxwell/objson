@@ -1,5 +1,5 @@
 """
-# Objson
+# Serialization
 
 * Description:
 
@@ -16,7 +16,9 @@ from objson.registry import get_registry
 _TYPE_KEY = '__type__'
 
 
-def dump(value: object, indent: int = 0, depth: int = 0) -> str:
+# -----Dump--------------------------------------------------------------------
+
+def dumps(value: object, indent: int = 0, depth: int = 0) -> str:
     """
     Serializes a Python value to a JSON string.
 
@@ -32,7 +34,7 @@ def dump(value: object, indent: int = 0, depth: int = 0) -> str:
     if entry is not None:
         payload = entry.encode(value)
         payload[_TYPE_KEY] = entry.tag
-        return dump(payload, indent, depth)
+        return dumps(payload, indent, depth)
 
     if value is None:
         return 'null'
@@ -53,6 +55,18 @@ def dump(value: object, indent: int = 0, depth: int = 0) -> str:
                     f'Use @serializable to register it.')
 
 
+def dump(value: object, fp, indent: int = 0) -> None:
+    """
+    Serializes a Python value to a JSON string and writes it to a file-like object.
+
+    Args:
+        value (object): The value to serialize.
+        fp (IO[str]): A writable file-like object.
+        indent (int): Number of spaces per indent level. 0 disables indentation.
+    """
+    fp.write(dumps(value, indent))
+
+
 def _dump_string(value: str) -> str:
     escapes = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f',
                '\n': '\\n', '\r': '\\r', '\t': '\\t'}
@@ -70,7 +84,7 @@ def _dump_string(value: str) -> str:
 def _dump_array(value: list, indent: int, depth: int) -> str:
     if not value:
         return '[]'
-    items = [dump(item, indent, depth + 1) for item in value]
+    items = [dumps(item, indent, depth + 1) for item in value]
     if not indent:
         return '[' + ', '.join(items) + ']'
     pad = ' ' * indent * (depth + 1)
@@ -81,7 +95,7 @@ def _dump_array(value: list, indent: int, depth: int) -> str:
 def _dump_object(value: dict, indent: int, depth: int) -> str:
     if not value:
         return '{}'
-    items = [dump(k, indent, depth + 1) + ': ' + dump(v, indent, depth + 1)
+    items = [dumps(k, indent, depth + 1) + ': ' + dumps(v, indent, depth + 1)
              for k, v in value.items()]
     if not indent:
         return '{' + ', '.join(items) + '}'
@@ -90,7 +104,9 @@ def _dump_object(value: dict, indent: int, depth: int) -> str:
     return '{\n' + ',\n'.join(f'{pad}{item}' for item in items) + f'\n{close_pad}}}'
 
 
-def load(text: str) -> object:
+# -----Load--------------------------------------------------------------------
+
+def loads(text: str) -> object:
     """
     Deserializes a JSON string into a Python value.
 
@@ -105,6 +121,18 @@ def load(text: str) -> object:
     return _decode_value(raw)
 
 
+def load(fp) -> object:
+    """
+    Deserializes a JSON string from a file-like object into a Python value.
+
+    Args:
+        fp (IO[str]): A readable file-like object.
+    Returns:
+        object: The deserialized Python value.
+    """
+    return loads(fp.read())
+
+
 def _decode_value(value: object) -> object:
     if isinstance(value, dict):
         return _decode_object(value)
@@ -116,12 +144,12 @@ def _decode_value(value: object) -> object:
 def _decode_object(value: dict) -> object:
     decoded = {k: _decode_value(v) for k, v in value.items()}
 
-    tag = decoded.get(_TYPE_KEY)
+    tag = str(decoded.get(_TYPE_KEY))
     if tag is None:
         return decoded
 
     registry = get_registry()
-    entry = registry.entry_for_tag(str(tag))
+    entry = registry.entry_for_tag(tag)
     if entry is None:
         raise ValueError(f'No type registered for tag {tag!r}.')
 

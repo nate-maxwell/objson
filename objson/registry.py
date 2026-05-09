@@ -39,15 +39,14 @@ class _TypeEntry(object):
         self.decode = decode
 
 
-# -----Registry----------------------------------------------------------------
-
 class Registry(object):
     def __init__(self) -> None:
         self._by_tag: dict[str, _TypeEntry] = {}
         self._by_type: dict[type, _TypeEntry] = {}
 
     def register(self, tag: str, type_: type, encode: EncodeFunc, decode: DecodeFunc) -> None:
-        """Registers a type with the given tag and encode/decode functions.
+        """
+        Registers a type with the given tag and encode/decode functions.
 
         Args:
             tag (str): The unique string tag written into serialized output.
@@ -66,22 +65,22 @@ class Registry(object):
         self._by_type[type_] = entry
 
     def entry_for_tag(self, tag: str) -> _TypeEntry | None:
-        """Returns the entry for a given tag, or None if not registered.
+        """
+        Returns the entry for a given tag, or None if not registered.
 
         Args:
             tag (str): The tag to look up.
-
         Returns:
             _TypeEntry | None: The matching entry, or None.
         """
         return self._by_tag.get(tag)
 
     def entry_for_type(self, type_: type) -> _TypeEntry | None:
-        """Returns the entry for a given type, or None if not registered.
+        """
+        Returns the entry for a given type, or None if not registered.
 
         Args:
             type_ (type): The type to look up.
-
         Returns:
             _TypeEntry | None: The matching entry, or None.
         """
@@ -112,14 +111,15 @@ def serializable(tag: str) -> Callable[[type], type]:
                 f'{cls.__name__!r} must implement the Serializable protocol '
                 f'(__encode__ and __decode__).'
             )
-        serializable_cls: Serializable = cls  # type: ignore[assignment]
+        serializable_cls: Serializable = cls
         _registry.register(tag, cls, lambda instance: instance.__encode__(), serializable_cls.__decode__)
         return cls
     return decorator
 
 
 def get_registry() -> Registry:
-    """Returns the global type registry.
+    """
+    Returns the global type registry.
 
     Returns:
         Registry: The global registry instance.

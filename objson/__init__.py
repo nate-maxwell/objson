@@ -1,2 +1,2 @@
-from objson.api import dump
-from objson.api import load
+from objson.serialize import dumps
+from objson.serialize import loads
