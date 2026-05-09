@@ -32,3 +32,9 @@ Source = "https://github.com/nate-maxwell/objson"
 test = [
     "pytest>=7.0"
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
