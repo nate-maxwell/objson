@@ -52,7 +52,8 @@ keywords: dict[str, TokenType] = {
 
 
 def look_up_identifier(identifier: str) -> TokenType:
-    """Returns the matching keyword token if the identifier is a keyword,
+    """
+    Returns the matching keyword token if the identifier is a keyword,
     otherwise returns ILLEGAL since bare identifiers are not valid JSON.
 
     Args:

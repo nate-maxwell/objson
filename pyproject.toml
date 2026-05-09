@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+packages = ["objson"]
+
+
+[project]
+name = "Objson"
+authors = [
+    {name = "Nathan Maxwell"}
+]
+description = "An extended JSON parser with python object support."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["python", "json"]
+classifiers = ["Programming Language :: Python :: 3.10"]
+
+dependencies = ['importlib-metadata; python_version<"3.10"']
+
+version = "0.5.0"
+
+
+[project.urls]
+Homepage = "https://github.com/nate-maxwell/objson"
+Source = "https://github.com/nate-maxwell/objson"
+
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0"
+]
