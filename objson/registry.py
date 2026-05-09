@@ -7,36 +7,63 @@
     Classes decorated with @serializable can be round-tripped through dump/load.
 """
 
-
+from typing import Any
 from typing import Callable
 from typing import Protocol
+from typing import TypeVar
 from typing import runtime_checkable
-
 
 # -----Protocol----------------------------------------------------------------
 
+
 @runtime_checkable
 class Serializable(Protocol):
-    def __encode__(self) -> dict:
-        ...
+    def __encode__(self) -> dict: ...
 
     @classmethod
-    def __decode__(cls, data: dict) -> 'Serializable':
-        ...
+    def __decode__(cls, data: dict) -> "Serializable": ...
 
 
 # -----Internal----------------------------------------------------------------
 
-EncodeFunc = Callable[[object], dict]
-DecodeFunc = Callable[[dict], object]
+T = TypeVar("T")
 
 
 class _TypeEntry(object):
-    def __init__(self, tag: str, type_: type, encode: EncodeFunc, decode: DecodeFunc) -> None:
+    def __init__(
+        self,
+        tag: str,
+        type_: type,
+        encode: Callable[[Any], dict],
+        decode: Callable[[dict], Any],
+    ) -> None:
         self.tag = tag
         self.type_ = type_
         self.encode = encode
         self.decode = decode
+
+
+def entry_for_type(registry: "Registry", instance: T) -> "_TypeEntryTyped[T] | None":
+    """
+    Returns the typed entry for a given instance's type, or None if not registered.
+
+    Args:
+        registry (Registry): The registry to look up from.
+        instance (T): An instance of the type to look up.
+    Returns:
+        _TypeEntryTyped[T] | None: The matching entry, or None.
+    """
+    return registry._by_type.get(type(instance))  # type: ignore[return-value]
+
+
+class _TypeEntryTyped(Protocol[T]):
+    tag: str
+    type_: type
+    encode: Callable[[T], dict]
+    decode: Callable[[dict], T]
+
+
+# -----Registry----------------------------------------------------------------
 
 
 class Registry(object):
@@ -44,22 +71,28 @@ class Registry(object):
         self._by_tag: dict[str, _TypeEntry] = {}
         self._by_type: dict[type, _TypeEntry] = {}
 
-    def register(self, tag: str, type_: type, encode: EncodeFunc, decode: DecodeFunc) -> None:
+    def register(
+        self,
+        tag: str,
+        type_: type[T],
+        encode: Callable[[T], dict],
+        decode: Callable[[dict], T],
+    ) -> None:
         """
         Registers a type with the given tag and encode/decode functions.
 
         Args:
             tag (str): The unique string tag written into serialized output.
-            type_ (type): The Python type being registered.
-            encode (EncodeFunc): Callable that takes an instance and returns a
-                plain dict.
-            decode (DecodeFunc): Callable that takes a plain dict and returns
-                an instance.
+            type_ (type[T]): The Python type being registered.
+            encode (Callable[[T], dict]): Callable that takes an instance and
+                returns a plain dict.
+            decode (Callable[[dict], T]): Callable that takes a plain dict and
+                returns an instance.
         """
         if tag in self._by_tag:
-            raise ValueError(f'Tag {tag!r} is already registered.')
+            raise ValueError(f"Tag {tag!r} is already registered.")
         if type_ in self._by_type:
-            raise ValueError(f'Type {type_.__name__!r} is already registered.')
+            raise ValueError(f"Type {type_.__name__!r} is already registered.")
         entry = _TypeEntry(tag, type_, encode, decode)
         self._by_tag[tag] = entry
         self._by_type[type_] = entry
@@ -92,28 +125,37 @@ _registry = Registry()
 
 # -----Decorator---------------------------------------------------------------
 
-def serializable(tag: str) -> Callable[[type], type]:
-    """Class decorator that registers a type for JSON serialization.
+
+def serializable(tag: str) -> Callable[[type[T]], type[T]]:
+    """
+    Class decorator that registers a type for JSON serialization.
 
     The decorated class must implement the Serializable protocol:
         __encode__(self) -> dict
         __decode__(cls, data: dict) -> Serializable  (classmethod)
 
     Args:
-        tag (str): The unique string tag used to identify this type in serialized output.
+        tag (str): The unique string tag used to identify this type in serialized
+            output.
 
     Returns:
-        Callable[[type], type]: The decorator function.
+        Callable[[type[T]], type[T]]: The decorator function.
     """
-    def decorator(cls: type) -> type:
+
+    def decorator(cls: type[T]) -> type[T]:
         if not isinstance(cls, type) or not issubclass(cls, Serializable):
             raise TypeError(
-                f'{cls.__name__!r} must implement the Serializable protocol '
-                f'(__encode__ and __decode__).'
+                f"{cls.__name__!r} must implement the Serializable protocol "
+                f"(__encode__ and __decode__)."
             )
         serializable_cls: Serializable = cls  # type: ignore[assignment]
-        _registry.register(tag, cls, lambda instance: instance.__encode__(), serializable_cls.__decode__)
+
+        def encode(instance: Any) -> dict:
+            return instance.__encode__()
+
+        _registry.register(tag, cls, encode, serializable_cls.__decode__)
         return cls
+
     return decorator
 
 

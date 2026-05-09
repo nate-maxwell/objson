@@ -6,7 +6,6 @@
     The primary token parser that builds Python values from a JSON token stream.
 """
 
-
 from objson.lexer import Lexer
 from objson.token import Token
 from objson.token import TokenType
@@ -16,8 +15,8 @@ class Parser(object):
     def __init__(self, lexer: Lexer) -> None:
         self._lexer = lexer
 
-        self._current_token: Token = Token(TokenType.ILLEGAL, '', 0)
-        self._peek_token: Token = Token(TokenType.ILLEGAL, '', 0)
+        self._current_token: Token = Token(TokenType.ILLEGAL, "", 0)
+        self._peek_token: Token = Token(TokenType.ILLEGAL, "", 0)
 
         self._next_token()
         self._next_token()
@@ -26,22 +25,22 @@ class Parser(object):
 
     def _peek_error(self, type_: TokenType) -> None:
         line_no = self._peek_token.line_no
-        err = f'[Line {line_no}] Expected next token to be {type_}, got {self._peek_token.type_} instead.'
+        err = f"[Line {line_no}] Expected next token to be {type_}, got {self._peek_token.type_} instead."
         raise ValueError(err)
 
     def _current_token_error(self, type_: TokenType) -> None:
         line_no = self._current_token.line_no
-        err = f'[Line {line_no}] Expected token to be {type_}, got {self._current_token.type_} instead.'
+        err = f"[Line {line_no}] Expected token to be {type_}, got {self._current_token.type_} instead."
         raise ValueError(err)
 
     def _illegal_token_error(self) -> None:
         line_no = self._current_token.line_no
-        err = f'[Line {line_no}] Illegal token: {self._current_token.literal!r}.'
+        err = f"[Line {line_no}] Illegal token: {self._current_token.literal!r}."
         raise ValueError(err)
 
     def _unexpected_token_error(self) -> None:
         line_no = self._current_token.line_no
-        err = f'[Line {line_no}] Unexpected token {self._current_token.type_} ({self._current_token.literal!r}).'
+        err = f"[Line {line_no}] Unexpected token {self._current_token.type_} ({self._current_token.literal!r})."
         raise ValueError(err)
 
     # -----Token Handling------------------------------------------------------
@@ -82,7 +81,7 @@ class Parser(object):
             self._next_token()
             if not self._current_token_is(TokenType.EOF):
                 line_no = self._current_token.line_no
-                raise ValueError(f'[Line {line_no}] Unexpected trailing content after value.')
+                raise ValueError(f"[Line {line_no}] Unexpected trailing content after value.")
         return value
 
     # -----Value Dispatch------------------------------------------------------
@@ -196,7 +195,9 @@ class Parser(object):
         try:
             return int(token.literal)
         except ValueError:
-            raise ValueError(f'[Line {token.line_no}] Could not parse {token.literal!r} as integer.')
+            raise ValueError(
+                f"[Line {token.line_no}] Could not parse {token.literal!r} as integer."
+            )
 
     def _parse_float_literal(self) -> float:
         """
@@ -209,4 +210,4 @@ class Parser(object):
         try:
             return float(token.literal)
         except ValueError:
-            raise ValueError(f'[Line {token.line_no}] Could not parse {token.literal!r} as float.')
+            raise ValueError(f"[Line {token.line_no}] Could not parse {token.literal!r} as float.")

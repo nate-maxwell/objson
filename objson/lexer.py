@@ -6,7 +6,6 @@
     The primary scanner and lexical analyzer for JSON input.
 """
 
-
 from objson.token import Token
 from objson.token import TokenType
 from objson.token import look_up_identifier
@@ -17,7 +16,7 @@ class Lexer(object):
         self._text = input_text
         self._position: int = 0
         self._read_position: int = 0
-        self._current_char: str = ''
+        self._current_char: str = ""
         self._current_line_num: int = 1
         self._read_char()
 
@@ -25,7 +24,7 @@ class Lexer(object):
 
     def _read_char(self) -> None:
         if self._read_position >= len(self._text):
-            self._current_char = '\0'
+            self._current_char = "\0"
         else:
             self._current_char = self._text[self._read_position]
 
@@ -34,12 +33,12 @@ class Lexer(object):
 
     def _peek_char(self) -> str:
         if self._read_position >= len(self._text):
-            return '\0'
+            return "\0"
         return self._text[self._read_position]
 
     def _skip_whitespace(self) -> None:
-        while self._current_char in (' ', '\t', '\n', '\r'):
-            if self._current_char == '\n':
+        while self._current_char in (" ", "\t", "\n", "\r"):
+            if self._current_char == "\n":
                 self._current_line_num += 1
             self._read_char()
 
@@ -55,37 +54,46 @@ class Lexer(object):
         """
         result = []
         escapes = {
-            'b': '\b', 'f': '\f', 'n': '\n',
-            'r': '\r', 't': '\t', '"': '"',
-            '\\': '\\', '/': '/',
+            "b": "\b",
+            "f": "\f",
+            "n": "\n",
+            "r": "\r",
+            "t": "\t",
+            '"': '"',
+            "\\": "\\",
+            "/": "/",
         }
         while True:
             self._read_char()
             ch = self._current_char
-            if ch == '\0':
-                return '', f'[Line {self._current_line_num}] Unterminated string.'
+            if ch == "\0":
+                return "", f"[Line {self._current_line_num}] Unterminated string."
             if ch == '"':
-                return ''.join(result), None
+                return "".join(result), None
 
-            if ch == '\\':
+            if ch == "\\":
                 self._read_char()
                 esc = self._current_char
-                if esc == 'u':
+                if esc == "u":
                     hex_chars = self._text[self._read_position:self._read_position + 4]
-                    if len(hex_chars) < 4 or not all(c in '0123456789abcdefABCDEF' for c in hex_chars):
-                        return '', f'[Line {self._current_line_num}] Invalid unicode escape.'
+                    if len(hex_chars) < 4 or not all(
+                        c in "0123456789abcdefABCDEF" for c in hex_chars
+                    ):
+                        return "", f"[Line {self._current_line_num}] Invalid unicode escape."
                     result.append(chr(int(hex_chars, 16)))
                     self._read_position += 4
                     self._position = self._read_position - 1
-                    self._current_char = self._text[self._position] if self._position < len(self._text) else '\0'
+                    self._current_char = (
+                        self._text[self._position] if self._position < len(self._text) else "\0"
+                    )
                     continue
                 if esc not in escapes:
-                    return '', f'[Line {self._current_line_num}] Invalid escape character \\{esc}.'
+                    return "", f"[Line {self._current_line_num}] Invalid escape character \\{esc}."
                 result.append(escapes[esc])
             else:
                 result.append(ch)
 
-        raise RuntimeError('Unreachable.')
+        raise RuntimeError("Unreachable.")
 
     def _read_number(self) -> tuple[str, TokenType]:
         """
@@ -98,27 +106,27 @@ class Lexer(object):
         position = self._position
         is_float = False
 
-        if self._current_char == '-':
+        if self._current_char == "-":
             self._read_char()
 
         while self._current_char.isdigit():
             self._read_char()
 
-        if self._current_char == '.':
+        if self._current_char == ".":
             is_float = True
             self._read_char()
             while self._current_char.isdigit():
                 self._read_char()
 
-        if self._current_char in ('e', 'E'):
+        if self._current_char in ("e", "E"):
             is_float = True
             self._read_char()
-            if self._current_char in ('+', '-'):
+            if self._current_char in ("+", "-"):
                 self._read_char()
             while self._current_char.isdigit():
                 self._read_char()
 
-        literal = self._text[position:self._position]
+        literal = self._text[position : self._position]
         return literal, TokenType.FLOAT if is_float else TokenType.INT
 
     def _read_identifier(self) -> str:
@@ -131,7 +139,7 @@ class Lexer(object):
         position = self._position
         while self._current_char.isalpha():
             self._read_char()
-        return self._text[position:self._position]
+        return self._text[position : self._position]
 
     # -----Token Helpers-------------------------------------------------------
 
@@ -149,17 +157,17 @@ class Lexer(object):
 
         ch = self._current_char
 
-        if ch == '{':
+        if ch == "{":
             tok = self._make_one_char_token(TokenType.LBRACE)
-        elif ch == '}':
+        elif ch == "}":
             tok = self._make_one_char_token(TokenType.RBRACE)
-        elif ch == '[':
+        elif ch == "[":
             tok = self._make_one_char_token(TokenType.LBRACKET)
-        elif ch == ']':
+        elif ch == "]":
             tok = self._make_one_char_token(TokenType.RBRACKET)
-        elif ch == ':':
+        elif ch == ":":
             tok = self._make_one_char_token(TokenType.COLON)
-        elif ch == ',':
+        elif ch == ",":
             tok = self._make_one_char_token(TokenType.COMMA)
 
         elif ch == '"':
@@ -169,7 +177,7 @@ class Lexer(object):
                 return Token(TokenType.ILLEGAL, error, self._current_line_num)
             return Token(TokenType.STRING, literal, self._current_line_num)
 
-        elif ch == '-' or ch.isdigit():
+        elif ch == "-" or ch.isdigit():
             literal, type_ = self._read_number()
             return Token(type_, literal, self._current_line_num)
 
@@ -178,7 +186,7 @@ class Lexer(object):
             type_ = look_up_identifier(literal)
             return Token(type_, literal, self._current_line_num)
 
-        elif ch == '\0':
+        elif ch == "\0":
             tok = self._make_one_char_token(TokenType.EOF)
         else:
             tok = Token(TokenType.ILLEGAL, ch, self._current_line_num)
