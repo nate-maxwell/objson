@@ -88,21 +88,6 @@ restored = loads(dumps(t))
 # Transform with a fully reconstructed Vec3 inside
 ```
 
-### Indented Output
-
-Pass `indent` to `dumps` or `dump` for pretty-printed output:
-
-```python
-dumps({"items": [1, 2, 3]}, indent=2)
-# {
-#   "items": [
-#     1,
-#     2,
-#     3
-#   ]
-# }
-```
-
 ## Sets
 
 objson extends the JSON syntax with a set literal using the `#{...}` sigil,
@@ -139,6 +124,8 @@ dumps([{1, 2}, {3, 4}])
 ```
 
 ## File I/O
+
+Just like working with regular json...
 
 ```python
 from objson import dump, load
