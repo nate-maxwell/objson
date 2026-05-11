@@ -208,17 +208,3 @@ indicating where in the input the problem was found.
 | Unknown `__type__` tag on load                    | `ValueError` |
 | Unregistered type passed to `dumps`               | `TypeError`  |
 | `@serializable` on class missing protocol methods | `TypeError`  |
-
-## Running Tests
-
-```
-pytest
-```
-
-Tests are organized by module:
-
-- `test_lexer.py` — token scanning, escape sequences, line number tracking
-- `test_parser.py` — value parsing, nested structures, error cases
-- `test_registry.py` — registration, protocol checking, decorator behaviour
-- `test_serialize.py` — round-trips, indentation, file I/O, custom types
-- `test_sets.py` — set support across the lexer, parser, and serializer
