@@ -138,18 +138,6 @@ dumps([{1, 2}, {3, 4}])
 # '[#{1, 2}, #{3, 4}]'
 ```
 
-Indented output is also supported:
-
-```python
-dumps({"tags": {"a", "b"}}, indent=2)
-# {
-#   "tags": #{
-#     "a",
-#     "b"
-#   }
-# }
-```
-
 ## File I/O
 
 ```python
